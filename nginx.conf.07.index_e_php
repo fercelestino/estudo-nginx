@@ -1,0 +1,37 @@
+#Necessário para correta comunicação com o php-fpm
+user www-data;
+
+events {
+
+}
+
+http {
+    include mime.types;
+
+    server { 
+        # Cada bloco server define um VirtualHost
+        listen 80; 
+
+        server_name localhost;
+
+        root /var/www/demo;
+
+        index index.php index.html;
+
+        #BLOCO para qualquer reqisição de conteúdo static
+        #Observar o =404 que funciona como placeholder para um um fallback que poderia ser implementado com location alias para uma pagina de erro customizada
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        #Colocando um location com REGEX abaixo, ele automaticamente terá precedencia sobre o de prefixo acima
+        location ~ \.php$ {
+            #Passar a requisição para o php-fpm através de fastCGI
+            #É uma alternativa ao proxy reverso via http para um outro servidor PHP, só que mais rápida por trafegar dados binários.
+
+            #Acrescenta a configuração build-in do nginx para fastcgi
+            include fastcgi.conf;
+            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        }
+    }
+}

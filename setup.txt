@@ -89,3 +89,170 @@ echo '' > error.log
 através das diretivas access_log e error_log
 Vide https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
 
+### OPCIONAL - CONFIGURAR PARA PHP
+apt-get update
+apt-get install php-fpm
+
+# LISTAR SERVIÇOS DISPONÍVEIS DO SYSTEMCTL
+systemctl list-units | grep php
+  php8.3-fpm.service                       loaded active     running   The PHP 8.3 FastCGI Process Manager
+root@5597c2d7ab68:~# systemctl status php8.3-fpm
+
+#Criar um arquivo php para teste
+echo "<?php phpinfo(); ?>" > /var/www/demo/info.php
+
+#PROBLEMA DE PERMISSÃO DO WORKER PROCESS DO NGINX PARA ACESSAR O SOCKET DO PHP, COMO RESOLVER:"
+root@5597c2d7ab68:~# ps aux | grep nginx
+CAUSA: O worker process do nginx roda com o usuário nobody, e o socket do php-fpm roda com o usuário www-data
+root@5597c2d7ab68:~# ps aux | grep nginx
+root       29808  0.0  0.0  10020  1660 ?        Ss   15:06   0:00 nginx: master process /usr/bin/nginx
+nobody     29809  0.0  0.0  10184  3160 ?        S    15:06   0:00 nginx: worker process
+root       31563  0.0  0.0   3124  1588 pts/2    S+   15:09   0:00 grep --color=auto nginx
+root@5597c2d7ab68:~# ps aux | grep php
+root       29666  0.0  0.2 206504 22644 ?        Ss   15:06   0:00 php-fpm: master process (/etc/php/8.3/fpm/php-fpm.conf)
+www-data   29667  0.0  0.1 206504 14232 ?        S    15:06   0:00 php-fpm: pool www
+www-data   29668  0.0  0.1 206504 14256 ?        S    15:06   0:00 php-fpm: pool www
+root       32419  0.0  0.0   3124  1592 pts/2    S+   15:11   0:00 grep --color=auto php
+
+Adicionar na config do nginx user www-data; na root do arquivo.
+
+PROCESSOS DO NGINX:
+- MASTER - é o serviço em si, que dispara worker processes que são os que respondem às requests
+- WORKER PROCESS - é o processo que responde às requisições, e é o que tem as permissões de acesso aos arquivos, etc. Ele roda com um usuário específico, que por padrão é nobody, mas pode ser configurado para outro usuário, como www-data, para facilitar a comunicação com outros serviços como o php-fpm. O master process tem permissões de root, mas não lida diretamente com as requisições.
+Para modificar o número de processos, basta configurar a diretiva worker_processes no bloco principal da configuração do nginx, que é o bloco global, ou seja, fora de http, server, etc. Por exemplo:
+worker_processes 4;
+RECOMENDAÇÃO: DEVE SER IGUAL AO NÚMERO DE CPU CORES. 
+PARA AUTOMATIZAR ISSO, EXISTE A DIRETIVA auto (Sempre sobe worker processos em quantidade igual ao numero de cores)
+
+Como descobrir o número de CPU cores:
+nproc
+lscpu
+
+Recomendáveil:
+worker_processes auto;
+
+é possível configurar o número máximo de conexões que cada worker process pode lidar, através da diretiva worker_connections, que é configurada no bloco events. O número total de conexões simultâneas que o nginx pode lidar é dado por worker_processes * worker_connections. Por exemplo:
+events {
+    worker_connections 1024;
+}
+Entretanto antes de setar arbitrariamente esse número é necessário checar qual o limite de arquivos que podem ser abertos 
+simultaneamente em cada CPU core no sistema operacional.
+Para isso, executar:
+ulimit -n
+No caso do teste com um mac rodando ubuntu no docker é 1.048.576
+
+worker_processes X worker_connections = número máximo de conexões simultâneas que o nginx pode lidar.
+
+é possível alterar o local do pid sem fazer o rebuild do nginx, através da config:
+pid /var/run/nginx.pid;
+
+## CONFIGURAÇÃO DE BUFFERS E TIMEOUTS.
+Para uma referencia das unidades de medida usadas na config: https://nginx.org/en/docs/syntax.html
+100 (bytes), 100K|k, 100M|m
+
+# SOBRE KEEP ALIVE:
+# ==========================================
+What is HTTP Keep-Alive
+HTTP keep-alive, a.k.a., HTTP persistent connection, is an instruction that allows a single TCP connection to remain open for multiple HTTP requests/responses.
+
+By default, HTTP connections close after each request. When someone visits your site, their browser needs to create new connections to request each of the files that make up your web pages (e.g. images, Javascript, and CSS stylesheets), a process that can lead to high page load times.
+
+
+Syntax:	keepalive_timeout timeout [header_timeout];
+Default:	
+keepalive_timeout 75s;
+Context:	http, server, location
+The first parameter sets a timeout during which a keep-alive client connection will stay open on the server side. The zero value disables keep-alive client connections. The optional second parameter sets a value in the “Keep-Alive: timeout=time” response header field. Two parameters may differ.
+
+The “Keep-Alive: timeout=time” header field is recognized by Mozilla and Konqueror. MSIE closes keep-alive connections by itself in about 60 seconds.
+# ==========================================
+
+MODULES
+- STATIC - Estão sempre carregados independente da configuração ativa no NGINX
+- DYNAMIC - São carregados apenas se a configuração ativa no NGINX fizer uso deles.
+Para aciocionar módulos ou fazer upgrade do nginx, é necessário fazer o rebuild
+
+
+COMO ATUALIZAR A VERSÃO OU INSTALAR NOVOS MÓDULOS:
+1 - Baixar a nova versão do nginx ou ter a pasta com os fontes (caso de adicionar novos módulos)
+2 - Usar nginx -V para pegar todas as flags usadas na configuração atual do nginx
+root@5597c2d7ab68:~/nginx-1.30.2# nginx -V
+nginx version: nginx/1.30.2
+built by gcc 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 
+built with OpenSSL 3.0.13 30 Jan 2024
+TLS SNI support enabled
+configure arguments: --sbin-path=/usr/bin/nginx --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --with-pcre --pid-path=/var/run/nginx.pid --with-http_ssl_module
+
+3 - Adicionar o novo módulo à configuração
+Para ver a lista de módulos usar ./configure --help
+
+Gerar novo makefile com os módulos a instalar:
+./configure --sbin-path=/usr/bin/nginx \
+--conf-path=/etc/nginx/nginx.conf \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--with-pcre \
+--pid-path=/var/run/nginx.pid \
+--with-http_ssl_module \
+--with-http_image_filter_module=dynamic \
+--modules-path=/etc/nginx/modules \
+--prefix=/etc/nginx 
+
+#Permite usar caminhos relativos em diretivas que se refiram a outros arquivos, como load_module, por exemplo. 
+
+Checar log para dependencias não atendidas. no caso a lib GD.
+apt-get install libgd-dev
+rodar de novo o mesmo comando configure
+make
+make install
+# checar se a nova config foi aplicada e módulo instalado
+nginx -V
+# Recarregar a configuração do nginx (SEM DOWNTIME)
+systemctl reload nginx
+
+
+#FERRAMENTA PARA TESTE DE SERVIDORES HTTP - APACHE HTTP BENCH
+# Foi usada como meio de checar a performance do fastcgi_cache
+apt-get install apache2-utils
+PAra checar a instalação:
+ab
+
+#Crie um arquivo php que imprima a data atual e faça mais alguns processamentos
+#através do comando echo e direcionando output para um arquivo
+echo "<?php 
+    echo 'Current date and time: ' . date('Y-m-d H:i:s') . PHP_EOL;
+    for (\$i = 0; \$i < 1000000; \$i++) {
+        // Simulate some processing
+    }
+?>" > /var/www/demo/info.php
+
+#Rodar o apache bench para fazer 100 requisições com concorrencia de 10
+ab -n 100 -c 10 http://localhost/info.php
+
+Para saber se a resposta veio do cache, é possível usar a variável $upstream_cache_status adicionando-a a um custom  header
+root@5597c2d7ab68:/nginx-1.30.2# curl -I http://localhost/info.php
+HTTP/1.1 200 OK
+Server: nginx/1.30.2
+Date: Fri, 05 Jun 2026 22:36:06 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+X-FastCGI-Cache: MISS
+
+root@5597c2d7ab68:/nginx-1.30.2# curl -I http://localhost/info.php
+HTTP/1.1 200 OK
+Server: nginx/1.30.2
+Date: Fri, 05 Jun 2026 22:36:10 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+X-FastCGI-Cache: HIT
+
+Se usada uma condição de bypass por parametro ou método:
+
+root@5597c2d7ab68:/nginx-1.30.2# curl -I http://localhost/info.php?skipcache=1
+HTTP/1.1 200 OK
+Server: nginx/1.30.2
+Date: Fri, 05 Jun 2026 22:44:52 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+X-FastCGI-Cache: BYPASS
+

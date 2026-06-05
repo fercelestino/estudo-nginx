@@ -1,0 +1,22 @@
+events {
+
+}
+
+http {
+    include mime.types;
+
+    server { 
+        # Cada bloco server define um VirtualHost
+        listen 80; 
+
+        server_name localhost;
+
+        root /var/www/demo;
+
+        location /hello {
+            return 200 'Hello from NGINX prefix location!';
+        }
+
+
+    }
+}
