@@ -256,3 +256,19 @@ Content-Type: text/html; charset=UTF-8
 Connection: keep-alive
 X-FastCGI-Cache: BYPASS
 
+# GERAR UM CERTIFICADO SSL AUTO ASSINADO
+mkdir -p /etc/nginx/ssl
+openssl req -x509 -days 365 -nodes -newkey rsa:2048 -keyout /etc/nginx/ssl/self.key -out /etc/nginx/ssl/self.crt
+-----
+Country Name (2 letter code) [AU]:BR
+State or Province Name (full name) [Some-State]:Parana
+Locality Name (eg, city) []:Curitiba
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:IntelliVirtus
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:IntelliVirtus
+Email Address []:fernando@intellivirtus.com.br
+
+#COMO SALVAR O STATE ATUAL DE UM CONTAINER COMO IMAGEM?
+docker commit <container_id> <new_image_name>
+docker commit nginx-learning nginx-learning-snapshot
+

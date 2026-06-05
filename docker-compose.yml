@@ -1,11 +1,13 @@
 services:
   ubuntu:
-    build: .
+    image: nginx-learning-snapshot
+    # build: .
     container_name: nginx-learning
     privileged: true
     command: /lib/systemd/systemd
     ports:
       - "80:80"
+      - "443:443"
     tmpfs:
       - /run
       - /run/lock
