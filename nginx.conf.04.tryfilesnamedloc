@@ -1,0 +1,49 @@
+ events {
+
+}
+
+http {
+    include mime.types;
+
+    server { 
+        # Cada bloco server define um VirtualHost
+        listen 80; 
+
+        server_name localhost;
+
+        root /var/www/demo;
+
+        #try_files pode ser usado tanto no escopo de server quanto no escopo de location
+
+        #No contexto atual, ou seja o root path, quando chamado tenta servir em sequencia, as locations listadas abaixo
+        #try_files /thumb.png /greet;
+        #Quando encontra um match, o try_files faz um rewrite interno.
+
+        #Se for passado o caminho explícito de um location, o try_files é ignorado, ou seja, o nginx tenta servir o recurso diretamente
+        #Verifiquei que para arquivos estáticos armazenados na root, com a config abaixo o try_files toma conta e os estáticos não são servidos
+
+        #Para resolver isso, basta usar o try_files com variaveis, como no caso abaixo. Primeiro tente a uri.
+        #try_files $uri /cat.png /greet /friendly_404; #Sempre ao final do try_files colocar uma que nunca falhe
+        #IMPORTANTE - SOMENTE O ÚLTIMO ARGUMENTO CAUSA UM REWRITE
+        #TODOS OS ANTERIORES SÃO AVALIADOS DE FORMA RELATIVA AO ROOT DIRECTORY
+        #POR ISSO NO CASO ACIMA, UM ARQUIVO QUE NÃO EXISTA NÃO PROVOCARÁ O CHAMANENTO DE /greet, embora exista uma location
+        #Mas se /greet estivesse ao final, como ultimo argumento, funcionaria.
+
+        #Recomenda-se, ao invés de usar um path explícito como último argumento, o que provoca sua reavaliação entre a config inteira,
+        # usar named location, com o prefixo @
+        try_files $uri /cat.png /greet @friendly_404;
+    
+
+        location /greet {
+            return 200 "Hello User!\n";
+        }
+
+        # location /friendly_404 {
+        #Abaixo como named location
+        location @friendly_404 {
+            return 404 "Sorry, the page you are looking for does not exist.\n";
+        }
+
+
+    }
+}

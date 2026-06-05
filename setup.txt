@@ -1,0 +1,91 @@
+No Ubuntu:
+apt-get update
+apt-get install wget curl
+apt-get install build-essential
+em nginx.org download, pegar a última versão estável
+wget https://nginx.org/download/nginx-1.30.2.tar.gz
+tar -zxvf nginx-1.30.2.tar.gz
+apt-get install libpcre3 libpcre3-dev zlib1g zlib1g-dev openssl libssl-dev
+cd nginx-1.30.2
+./configure
+Deve dar sucesso
+./configure --help
+Em nginx.org documentation - building nginx from source (https://nginx.org/en/docs/configure.html),
+ele explica cada uma das opções de configuração.
+./configure --sbin-path=/usr/bin/nginx \
+--conf-path=/etc/nginx/nginx.conf \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--with-pcre --pid-path=/var/run/nginx.pid \
+--with-http_ssl_module
+Para ver uma lista de modulos, acessar documentation, e ir para a parte de baixo onde há todos os módulos e o flag necessário para instalá-lo
+(isso no caso dos built-in modules)
+
+A execução acima vai criar um Makefile na pasta. 
+Para compilar, basta rodar o comando make.
+make
+Depois de compilar, para instalar, basta rodar o comando make install.
+make install
+
+Para checar se funcionou, listar a pasta de configuração:
+ls -la /etc/nginx
+ou executar:
+nginx -V
+
+Para iniciar o servidor:
+nginx
+
+nginx -h (help)
+
+Manusear o serviço (Enviar process signals):
+nginx -s stop (graceful shutdown)
+nginx -s quit (immediate shutdown)
+nginx -s reload (reload configuration without downtime)
+ngninx -s reopen (reopen log files)
+
+Adicionar o nginx como serviço systemd.
+apt-get install nano 
+Copiar o arquivo nginx.service para /lib/systemd/system/nginx.service
+
+systemctl start nginx
+systemctl status nginx
+systemctl stop nginx
+systemctl restart nginx
+
+-- habilitar statup on boot
+systemctl enable nginx
+
+-- para reiniciar o servidor sem downtime após alterar a configuração, por exemplo:
+-- se a configuração for inválida, o comando acima vai falhar, e o servidor continuará rodando com a configuração antiga.
+systemctl reload nginx
+
+Para pecar pelo excesso, é possível rodar para checar a config:
+nginx -t
+
+mkdir /var/www
+--Lembrar das permissões de execução nos diretórios que vão hospedar arquivos estáticos
+chmod -R 755 /var/www
+
+Debug - CSS não funciona - má associação de MIME type
+curl -I http://localhost/style.css
+Observar que o header de content type vem Text/Plain
+
+No /etc/nginx/mime.types há todas as principais associações de MIME types. Incluir na conf.
+
+No nginx.org procurar por Alphabetical index of variables
+Ao lado de cada variavel, entre parenteses, está o módulo necessário para que ela funcione
+
+
+#LOGS
+limpar os logs:
+cd /var/log/nginx
+echo '' > access.log
+echo '' > error.log
+
+#OBSERVAÇÕES
+- 1 - 404 é logado no access.log também.
+- 2 - Em caso de systemctl reload nginx, eventuais erros na config aparecem no error.log, pois o erro é silencioso e não derruba o servidor
+- é possível criar arquivos de log separados para escopos diferentes, e habilitar ou desabilitar logs nesses contextos, 
+através das diretivas access_log e error_log
+Vide https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
+

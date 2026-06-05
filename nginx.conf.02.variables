@@ -1,0 +1,43 @@
+ events {
+
+}
+
+http {
+    include mime.types;
+
+    server { 
+        # Cada bloco server define um VirtualHost
+        listen 80; 
+
+        server_name localhost;
+
+        root /var/www/demo;
+
+        #IMPORTANTE - Não usar condicionais dentro de blocos location
+        # if ( $arg_apikey != 1234) {
+        #     return 401 "Incorrenct API Key\n";
+        # }
+
+        set $weekend 'No';
+
+        if ( $date_local ~ 'Saturday|Sunday') {
+            set $weekend 'Yes';
+        }
+
+        location /inspect {
+            return 200 "$host\n$uri\n$args\nName: $arg_name\n";
+        }
+
+        location /is_weekend {
+            return 200 "Is it weekend? $weekend\n";
+        }
+
+        location /is_businessday {
+            if ( $weekend = 'Yes') {
+                return 200 "No, it's weekend\n";
+            }
+
+            return 200 "Yes, it's business day\n";
+        }
+    }
+}

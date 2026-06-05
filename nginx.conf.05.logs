@@ -1,0 +1,31 @@
+ events {
+
+}
+
+http {
+    include mime.types;
+
+    server { 
+        # Cada bloco server define um VirtualHost
+        listen 80; 
+
+        server_name localhost;
+
+        root /var/www/demo;
+
+        location /secure {
+            access_log /var/log/nginx/secure_access.log;
+            #Se quiser também logar no log principal, adicionar mais um apontando para o log principal
+            #access_log /var/log/nginx/access.log;
+
+            return 200 "Welcome to secure area";
+        }
+
+        location /semlogs {
+            #Desabilita o log para essa localização
+            access_log off;
+
+            return 200 "This area has no logs";
+        }
+    }
+}

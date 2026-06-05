@@ -1,0 +1,17 @@
+services:
+  ubuntu:
+    build: .
+    container_name: nginx-learning
+    privileged: true
+    command: /lib/systemd/systemd
+    ports:
+      - "80:80"
+    tmpfs:
+      - /run
+      - /run/lock
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    # volumes:
+    #   - ./nginx/config:/etc/nginx
+    #   - ./nginx/logs:/var/log/nginx
+    #   - ./nginx/html:/var/www/html
