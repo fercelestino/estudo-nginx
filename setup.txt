@@ -272,3 +272,26 @@ Email Address []:fernando@intellivirtus.com.br
 docker commit <container_id> <new_image_name>
 docker commit nginx-learning nginx-learning-snapshot
 
+Para testar o server push do http2, instalar o nghttp2, e rodar o comando:
+apt-get install nghttp2-client
+
+A requisição abaixo vai solicitar o index.html, e o servidor responderá só com o index.html a não ser que o server_push esteja habilitado.
+nghttp -nys https://localhost/index.html
+
+Adicionando o flag a, aparecerão o index.html e os recursos dos quais ele depende, carregados milissegundos depois, mostrando que são carregados separados.
+nghttp -nysa https://localhost/index.html
+
+# TLS - GERAR DH PARAMETERS
+O tamanho 2048 tem que corresponder ao tamanho usado na criação da chave SSL
+openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
+
+# RATE LIMIT E TESTES DE CARGA
+O apache bench é mais útil para benchmarks.
+Para testes de carga usar o siege
+apt-get install siege
+Para rodar o teste de carga:
+siege -v -r 2 -c 5 https://127.0.0.1/thumb.png 
+r = testes/repetições
+c = concorrência
+total será de 10 requests
+
