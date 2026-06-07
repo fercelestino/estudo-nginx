@@ -1,0 +1,42 @@
+events {
+}
+
+http {
+
+  include mime.types;
+
+  upstream app_servers {
+    #Sticki sessions (direciona para o mesmo servidor se vindo do mesmo ip cliente)
+    #ip_hash;
+
+    #Direciona para o servidor com menor carga
+    #least_conn;
+
+
+    server app1:80;
+    server app2:80;
+    server app3:80;
+
+    
+  }
+
+  server {
+
+    listen 80;
+    server_name localhost;
+
+    root /var/www/demo;
+
+    index index.php index.html;
+
+    location / {
+      try_files $uri $uri/ =404;
+    }
+
+
+    location /app {
+      proxy_pass http://app_servers;
+    }
+
+  }
+}

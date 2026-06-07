@@ -295,3 +295,40 @@ r = testes/repetições
 c = concorrência
 total será de 10 requests
 
+o apache2-utils também tem tools para gerar senhas criptografadas de autenticação
+htpasswd -c /etc/nginx/.htpasswd user1
+
+## ATUALIZAÇÃO PERIÓDICA
+apt-get update
+apt-get upgrade
+Checar a versão do nginx:
+nginx -v
+ou através do header Server nas respostas:
+curl -I http://localhost
+Checar no nginx.org se é a última versão estável, e se não for, repetir o processo de download, configuração, compilação e instalação da nova versão.
+
+#HARDENING
+1 - Retirar a versão do header Server
+2 - Impedir embedding do site em iframes de outros domínios, o que pode prevenir ataques de clickjacking
+3 - Desabilitar cross site scripting (XSS)
+4 - Recompilar o nginx retirando módulos padrão potencialmente vulneráveis que não estejam sendo utilizados.
+./configure --help | grep without
+nginx -V para pegar a conf atual
+Rodar o ./configure com as flags --without para os módulos que se deseja retirar, e as flags --with para os módulos que se deseja manter ou adicionar.
+make
+make install
+systemctl reload nginx
+
+5 - Habilitar apenas protocolos TLS seguros (TLS 1.2 e TLS 1.3) e desabilitar protocolos antigos e inseguros.
+
+---------
+
+- Para subir uma instancia do nginx em outra porta usando uma config diferente, fazer:
+nginx -c /etc/nginx/nginx.conf.20.reverseproxy
+
+REVERSE PROXY
+- é possível passar headers para o servidor de destino ou para o client que fez a request, por ocasião da resposta
+
+LOAD BALANCER
+- jeito fácil de testar:
+while sleep 0.5; do curl -I http://localhost/app/; done

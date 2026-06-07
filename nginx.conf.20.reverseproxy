@@ -1,0 +1,50 @@
+events {
+}
+
+http {
+
+  include mime.types;
+
+  server {
+
+    listen 80;
+    server_name localhost;
+
+    root /var/www/demo;
+
+    index index.php index.html;
+
+    location / {
+      try_files $uri $uri/ =404;
+    }
+
+    #IMPORTANTE
+    # Se quiser que a uri (path) inteiro seja repassado para o destinatário do proxy pass
+    # deixar a URI do proxy_pass sem a barra no final, ou seja, 'http://app1' ao invés de 'http://app1/'
+    # Com isso, a aplicação de destino receberá o path /app1/o que mais for colocado.
+    # Se quiser que a uri (path) encaminhado ao destinatário do proxy pass nào inclula o prefixo
+    # especificado na configuração, colocar a barra no final do proxy_pass, ou seja, 'http://app1/' ao invés de 'http://app1'
+    # Comparar os outputs do app1/app2 com o do app3 no campo URI para entender a diferença
+    # IMPORTANTE 2 - DEVE HAVER UM MATCH ENTRE a URI na location e a uri no proxypass, ou as duas com barra no final ou as duas sem
+    # caso contrario os browsers podem dar retorno 301 (moved permanently) e não funcionar o proxy pass
+
+    location /app1/ {
+      proxy_pass 'http://app1/';
+      #Send the header to the backend
+      proxy_set_header X-Real-IP $remote_addr;
+
+      #Send a header back to the client with the IP of the backend server
+      add_header X-Backend-IP $upstream_addr;
+    }
+  
+    location /app2/ {
+      proxy_pass 'http://app2/';
+    }
+
+    location /app3/ {
+      proxy_pass 'http://app3/';
+    }
+
+
+  }
+}

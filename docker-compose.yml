@@ -8,6 +8,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890"
     tmpfs:
       - /run
       - /run/lock
@@ -17,3 +20,27 @@ services:
     #   - ./nginx/config:/etc/nginx
     #   - ./nginx/logs:/var/log/nginx
     #   - ./nginx/html:/var/www/html
+    networks:
+      - backend
+
+  app1:
+    image: traefik/whoami
+    container_name: app1
+    networks:
+      - backend
+
+  app2:
+    image: traefik/whoami
+    container_name: app2
+    networks:
+      - backend
+
+  app3:
+    image: traefik/whoami
+    container_name: app3
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
