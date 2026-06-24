@@ -5,6 +5,7 @@
   vectorhubServer: std.extVar('VECTORHUB_SERVER'),
   apiServer: std.extVar('API_SERVER'),
   victoriaproServer: std.extVar('VICTORIAPRO_SERVER'),
+  rateLimitPolicy: std.extVar('RATE_LIMIT_POLICY'),
   redisHost: std.extVar('REDIS_HOST'),
   redisPort: std.parseInt(std.extVar('REDIS_PORT')),
   redisPassword: std.extVar('REDIS_PASSWORD'),

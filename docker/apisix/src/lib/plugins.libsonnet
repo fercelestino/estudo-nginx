@@ -1,7 +1,7 @@
 local env = import 'env.libsonnet';
 
 {
-  limitCount(count, timeWindow):: {
+  limitCount(count, timeWindow, policy=env.rateLimitPolicy, redisHost=env.redisHost, redisPort=env.redisPort, redisPassword=env.redisPassword):: {
     'limit-count': {
       key_type: 'var',
       key: 'http_x_forwarded_for',
@@ -9,7 +9,12 @@ local env = import 'env.libsonnet';
       show_limit_quota_header: true,
       count: count,
       time_window: timeWindow,
-    },
+      policy: policy,
+    } + (if policy == 'redis' then {
+      redis_host: redisHost,
+      redis_port: redisPort,
+      redis_password: redisPassword,
+    } else {}),
   },
 
   fileLogger(path):: {
@@ -27,12 +32,30 @@ local env = import 'env.libsonnet';
   // Leaky-bucket rate limiter — analogous to nginx limit_req rate=Xr/s burst=Y.
   // Uses Redis so limits are shared across APISIX workers/nodes.
   // Redis connection defaults come from the active envs/*.env file.
-  limitReq(rate=3, burst=5, redisHost=env.redisHost, redisPort=env.redisPort, redisPassword=env.redisPassword):: {
+  limitReq(rate=3, burst=5, policy=env.rateLimitPolicy, redisHost=env.redisHost, redisPort=env.redisPort, redisPassword=env.redisPassword):: {
     'limit-req': {
       rate: rate,
       burst: burst,
       key_type: 'var',
       key: 'http_x_forwarded_for',
+      rejected_code: 429,
+      policy: policy,
+    } + (if policy == 'redis' then {
+      redis_host: redisHost,
+      redis_port: redisPort,
+      redis_password: redisPassword,
+    } else {}),
+  },
+
+  // Concurrency limiter — controls simultaneous in-flight connections.
+  // Uses Redis so the limit is shared across APISIX workers/nodes.
+  limitConn(conn=10, burst=2, defaultConnDelay=0.1, redisHost=env.redisHost, redisPort=env.redisPort, redisPassword=env.redisPassword):: {
+    'limit-conn': {
+      conn: conn,
+      burst: burst,
+      default_conn_delay: defaultConnDelay,
+      key_type: 'var',
+      key: 'remote_addr',
       rejected_code: 429,
       policy: 'redis',
       redis_host: redisHost,

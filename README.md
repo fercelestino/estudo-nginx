@@ -13,6 +13,7 @@ envs/
 
 docker/apisix/src/            ← edit these
   apisix.jsonnet              ← main entry point (imports everything)
+  config.jsonnet              ← generates APISIX runtime config (plugins, OTel, Prometheus)
   lib/
     env.libsonnet             ← reads injected env vars; single source of truth for all hosts/ports
     plugins.libsonnet         ← reusable plugin helpers
@@ -20,8 +21,9 @@ docker/apisix/src/            ← edit these
   services/                   ← one file per service
   routes/                     ← one file per route
 
-docker/apisix/dist/
-  apisix.yaml                 ← generated output (do not edit manually)
+docker/apisix/dist/           ← generated output (do not edit manually)
+  apisix.yaml                 ← routes, services, upstreams
+  config.yaml                 ← APISIX runtime config (OTel collector address from OTEL_ENDPOINT)
 ```
 
 `build.sh` reads the selected `envs/*.env` file, then calls `jsonnet` with `--ext-str` flags that
@@ -119,6 +121,7 @@ API_SERVER=victoriadev.consorcio.local
 VICTORIAPRO_SERVER=victoriaprodev.consorcio.local
 REDIS_HOST=victoriadev.consorcio.local
 REDIS_PORT=6379
+OTEL_ENDPOINT=victoriadev.consorcio.local:4318
 ```
 
 **`envs/prod.env`**
@@ -129,6 +132,7 @@ API_SERVER=victoria.consorcio.local
 VICTORIAPRO_SERVER=victoriapro.consorcio.local
 REDIS_HOST=victoria.consorcio.local
 REDIS_PORT=6379
+OTEL_ENDPOINT=victoria.consorcio.local:4318
 ```
 
 `build.sh` passes every variable to `jsonnet` via `--ext-str`. The Jsonnet side reads them all in
@@ -143,6 +147,7 @@ REDIS_PORT=6379
   victoriaproServer: std.extVar('VICTORIAPRO_SERVER'),
   redisHost:        std.extVar('REDIS_HOST'),
   redisPort:        std.parseInt(std.extVar('REDIS_PORT')),
+  otelEndpoint:     std.extVar('OTEL_ENDPOINT'),
 }
 ```
 

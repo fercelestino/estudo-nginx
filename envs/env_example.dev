@@ -11,6 +11,8 @@ API_SERVER=victoriadev.consorcio.local
 VICTORIAPRO_SERVER=victoriaprodev.consorcio.local
 
 # Redis (shared rate-limit state across APISIX workers)
+# RATE_LIMIT_POLICY: redis (shared across nodes) | local (per-instance)
+RATE_LIMIT_POLICY=local
 REDIS_HOST=victoriadev.consorcio.local
 REDIS_PORT=6379
 REDIS_PASSWORD=

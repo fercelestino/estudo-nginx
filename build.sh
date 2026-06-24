@@ -3,8 +3,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$SCRIPT_DIR/docker/apisix/src/apisix.jsonnet"
+CONFIG_SRC="$SCRIPT_DIR/docker/apisix/src/config.jsonnet"
 DIST_DIR="$SCRIPT_DIR/docker/apisix/dist"
 OUT="$DIST_DIR/apisix.yaml"
+CONFIG_OUT="$DIST_DIR/config.yaml"
 
 # ENV selects which envs/<name>.env file to load. Default: dev.
 # Usage: ./build.sh            → uses envs/dev.env
@@ -34,10 +36,24 @@ jsonnet --string "$SRC" -o "$OUT" \
   --ext-str VECTORHUB_SERVER="${VECTORHUB_SERVER}" \
   --ext-str API_SERVER="${API_SERVER}" \
   --ext-str VICTORIAPRO_SERVER="${VICTORIAPRO_SERVER}" \
+  --ext-str RATE_LIMIT_POLICY="${RATE_LIMIT_POLICY}" \
   --ext-str REDIS_HOST="${REDIS_HOST}" \
   --ext-str REDIS_PORT="${REDIS_PORT}" \
   --ext-str REDIS_PASSWORD="${REDIS_PASSWORD}" \
   --ext-str OTEL_ENDPOINT="${OTEL_ENDPOINT}"
 
 echo '#END' >> "$OUT"
+
+jsonnet --string "$CONFIG_SRC" -o "$CONFIG_OUT" \
+  --ext-str CONTROLLER_SERVER="${CONTROLLER_SERVER}" \
+  --ext-str VECTORHUB_SERVER="${VECTORHUB_SERVER}" \
+  --ext-str API_SERVER="${API_SERVER}" \
+  --ext-str VICTORIAPRO_SERVER="${VICTORIAPRO_SERVER}" \
+  --ext-str RATE_LIMIT_POLICY="${RATE_LIMIT_POLICY}" \
+  --ext-str REDIS_HOST="${REDIS_HOST}" \
+  --ext-str REDIS_PORT="${REDIS_PORT}" \
+  --ext-str REDIS_PASSWORD="${REDIS_PASSWORD}" \
+  --ext-str OTEL_ENDPOINT="${OTEL_ENDPOINT}"
+
 echo "Built: $OUT (ENV=${ENV})"
+echo "Built: $CONFIG_OUT (ENV=${ENV})"
