@@ -1,0 +1,55 @@
+x-limit-count-defaults: &limit_count_defaults
+  key_type: var
+  key: http_x_forwarded_for
+  rejected_code: 429
+  show_limit_quota_header: true
+
+upstreams:
+  - id: web_middleware_servopa
+    name: web_middleware_servopa
+    desc: "web_middleware_servopa.consorcioservopa.com.br"
+    scheme: http
+    nodes:
+      - host: victoriadev.consorcio.local
+        port: 8092
+        weight: 2
+    type: roundrobin
+    pass_host: node
+
+services:
+  - id: web_middleware_servopa_svc
+    name: web_middleware_servopa_svc
+    upstream_id: web_middleware_servopa
+    plugins:
+      proxy-rewrite:
+        regex_uri: ["^/victoria_controller_web(.*)$", "$1"]
+
+routes:
+  - id: web_middleware_servopa_dados_iniciais
+    name: web_middleware_servopa_dados_iniciais
+    uri: "/victoria_controller_web/web/servopa/jornada/dados-iniciais"
+    service_id: web_middleware_servopa_svc
+    plugins:
+      limit-count:
+        <<: *limit_count_defaults
+        count: 1
+        time_window: 60
+      file-logger:
+        path: /usr/local/apisix/logs/rate-limit-debug.log
+
+  - id: web_middleware_servopa_webhook
+    name: web_middleware_servopa_webhook
+    uri: /victoria_controller_web/web/servopa/webhook
+    service_id: web_middleware_servopa_svc
+    plugins:
+      limit-count:
+        <<: *limit_count_defaults
+        count: 2
+        time_window: 10
+
+  - id: web_middleware_servopa_fallback
+    name: web_middleware_servopa_fallback
+    uri: "/victoria_controller_web/*"
+    service_id: web_middleware_servopa_svc
+
+#END

@@ -1,0 +1,16 @@
+deployment:
+  role: data_plane
+  role_data_plane:
+    config_provider: yaml
+
+# DEBUG: error_log_level=warn captures api-breaker open/close events.
+# Set to info for more verbose plugin lifecycle messages.
+# Restore to error for production.
+nginx_config:
+  error_log_level: warn
+  http:
+    # DEBUG: access log includes upstream_status and upstream_response_time.
+    # upstream_status="-" means the breaker short-circuited the request (no upstream call).
+    # Restore default format for production.
+    access_log_format: '$time_local $remote_addr - "$request" $status up_status=$upstream_status up_time=$upstream_response_time'
+    access_log_format_escape: default

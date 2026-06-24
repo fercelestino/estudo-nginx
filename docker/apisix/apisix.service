@@ -1,0 +1,17 @@
+[Unit]
+Description=Apache APISIX API Gateway
+Documentation=https://apisix.apache.org
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/usr/local/apisix/logs/nginx.pid
+ExecStartPre=/usr/bin/apisix init
+ExecStart=/usr/bin/apisix start
+ExecStop=/usr/bin/apisix stop
+ExecReload=/usr/bin/apisix reload
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

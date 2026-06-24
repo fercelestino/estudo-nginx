@@ -1,0 +1,26 @@
+services:
+  apisix:
+    build:
+      context: ./apisix
+    container_name: apisix
+    privileged: true
+    cgroup: host
+    command: /lib/systemd/systemd
+    ports:
+      - "0.0.0.0:9080:9080/tcp"
+      - "0.0.0.0:9443:9443/tcp"
+    env_file:
+      - ./apisix/env_file
+    tmpfs:
+      - /run
+      - /run/lock
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - ./apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix/dist/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:rw
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
