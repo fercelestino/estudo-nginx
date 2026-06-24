@@ -1,5 +1,7 @@
 # DEV environment — sourced by build.sh when ENV=dev (the default)
 # Run with: ./build.sh  OR  ENV=dev ./build.sh
+#
+# Copy to envs/dev.env and fill in secrets before building.
 
 # Backend servers
 # All currently point to the same host; split into separate vars when needed.
@@ -11,3 +13,7 @@ VICTORIAPRO_SERVER=victoriaprodev.consorcio.local
 # Redis (shared rate-limit state across APISIX workers)
 REDIS_HOST=victoriadev.consorcio.local
 REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# OpenTelemetry collector — OTLP/HTTP endpoint (host:port, no scheme or path)
+OTEL_ENDPOINT=victoriadev.consorcio.local:4318

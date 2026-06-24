@@ -1,5 +1,7 @@
 # PROD environment — sourced by build.sh when ENV=prod
 # Run with: ENV=prod ./build.sh
+#
+# Copy to envs/prod.env and fill in secrets before building.
 
 # Backend servers
 CONTROLLER_SERVER=victoria.consorcio.local
@@ -10,3 +12,7 @@ VICTORIAPRO_SERVER=victoriapro.consorcio.local
 # Redis (shared rate-limit state across APISIX workers)
 REDIS_HOST=victoria.consorcio.local
 REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# OpenTelemetry collector — OTLP/HTTP endpoint (host:port, no scheme or path)
+OTEL_ENDPOINT=victoria.consorcio.local:4318

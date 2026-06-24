@@ -35,7 +35,9 @@ jsonnet --string "$SRC" -o "$OUT" \
   --ext-str API_SERVER="${API_SERVER}" \
   --ext-str VICTORIAPRO_SERVER="${VICTORIAPRO_SERVER}" \
   --ext-str REDIS_HOST="${REDIS_HOST}" \
-  --ext-str REDIS_PORT="${REDIS_PORT}"
+  --ext-str REDIS_PORT="${REDIS_PORT}" \
+  --ext-str REDIS_PASSWORD="${REDIS_PASSWORD}" \
+  --ext-str OTEL_ENDPOINT="${OTEL_ENDPOINT}"
 
 echo '#END' >> "$OUT"
 echo "Built: $OUT (ENV=${ENV})"

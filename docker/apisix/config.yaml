@@ -14,3 +14,19 @@ nginx_config:
     # Restore default format for production.
     access_log_format: '$time_local $remote_addr - "$request" $status up_status=$upstream_status up_time=$upstream_response_time'
     access_log_format_escape: default
+
+plugins:
+  - api-breaker
+  - proxy-rewrite
+  - limit-req
+  - limit-count
+  - file-logger
+  - opentelemetry
+  - prometheus
+
+plugin_attr:
+  prometheus:
+    export_uri: /apisix/prometheus/metrics
+    export_addr:
+      ip: 0.0.0.0
+      port: 9091

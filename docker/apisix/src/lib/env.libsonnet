@@ -7,4 +7,6 @@
   victoriaproServer: std.extVar('VICTORIAPRO_SERVER'),
   redisHost: std.extVar('REDIS_HOST'),
   redisPort: std.parseInt(std.extVar('REDIS_PORT')),
+  redisPassword: std.extVar('REDIS_PASSWORD'),
+  otelEndpoint: std.extVar('OTEL_ENDPOINT'),
 }

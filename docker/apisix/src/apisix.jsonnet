@@ -1,3 +1,5 @@
+local env = import 'lib/env.libsonnet';
+
 local web_middleware_upstream = import 'upstreams/web_middleware_servopa.libsonnet';
 local victoria_api_upstreams = import 'upstreams/victoria_api.libsonnet';
 local victoriapro_api_upstreams = import 'upstreams/victoriapro_api.libsonnet';
@@ -46,6 +48,20 @@ std.manifestYamlDoc(
     upstreams: upstreams,
     services: services,
     routes: routes,
+    plugin_metadata: [
+      {
+        id: 'opentelemetry',
+        trace_id_source: 'x-request-id',
+        resource: {
+          'service.name': 'apisix-victoria-gateway',
+        },
+        collector: {
+          address: env.otelEndpoint,
+          request_uri: '/v1/traces',
+          request_timeout: 3,
+        },
+      },
+    ],
   },
   quote_keys=false
 )

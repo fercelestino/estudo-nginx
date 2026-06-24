@@ -1,1 +1,4 @@
 docker/apisix/dist/*.yaml
+
+# Env files contain secrets — use envs/env_example.* as templates
+*.env
