@@ -32,7 +32,7 @@ local env = import 'env.libsonnet';
   // Leaky-bucket rate limiter — analogous to nginx limit_req rate=Xr/s burst=Y.
   // Uses Redis so limits are shared across APISIX workers/nodes.
   // Redis connection defaults come from the active envs/*.env file.
-  limitReq(rate=3, burst=5, policy=env.rateLimitPolicy, redisHost=env.redisHost, redisPort=env.redisPort, redisPassword=env.redisPassword):: {
+  limitReq(rate=3, burst=5, allowDegradation=true, policy=env.rateLimitPolicy, redisHost=env.redisHost, redisPort=env.redisPort, redisPassword=env.redisPassword):: {
     'limit-req': {
       rate: rate,
       burst: burst,
@@ -40,6 +40,7 @@ local env = import 'env.libsonnet';
       key: 'http_x_forwarded_for',
       rejected_code: 429,
       policy: policy,
+      allow_degradation: allowDegradation,
     } + (if policy == 'redis' then {
       redis_host: redisHost,
       redis_port: redisPort,

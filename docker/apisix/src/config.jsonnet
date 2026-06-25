@@ -9,7 +9,7 @@ std.manifestYamlDoc(
       },
     },
     nginx_config: {
-      error_log_level: 'warn',
+      error_log_level: 'debug',
       http: {
         access_log_format: '$time_local $remote_addr - "$request" $status up_status=$upstream_status up_time=$upstream_response_time',
         access_log_format_escape: 'default',

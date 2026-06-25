@@ -57,3 +57,5 @@ jsonnet --string "$CONFIG_SRC" -o "$CONFIG_OUT" \
 
 echo "Built: $OUT (ENV=${ENV})"
 echo "Built: $CONFIG_OUT (ENV=${ENV})"
+
+cp ./debug.yaml "$DIST_DIR/debug.yaml"

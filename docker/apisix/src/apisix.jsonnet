@@ -15,7 +15,6 @@ local upstreams =
   web_controller_upstreams +
   wpp_controller_upstreams;
 
-local web_middleware_svc = import 'services/web_middleware_servopa_svc.libsonnet';
 local victoria_api_svcs = import 'services/victoria_api_svc.libsonnet';
 local victoriapro_api_svcs = import 'services/victoriapro_api_svc.libsonnet';
 local vectorhub_svcs = import 'services/vectorhub_svc.libsonnet';
@@ -23,7 +22,6 @@ local web_controller_svcs = import 'services/web_controller_svc.libsonnet';
 local wpp_controller_svcs = import 'services/wpp_controller_svc.libsonnet';
 
 local services =
-  [web_middleware_svc] +
   victoria_api_svcs +
   victoriapro_api_svcs +
   vectorhub_svcs +

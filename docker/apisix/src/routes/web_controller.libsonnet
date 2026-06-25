@@ -20,6 +20,6 @@ local plugins = import '../lib/plugins.libsonnet';
     name: 'victoria_controller_web_servopa',
     uri: '/victoria_controller_web/*',
     service_id: 'victoria_controller_web_servopa_svc',
-    plugins: plugins.limitReq(),
+    plugins: plugins.limitReq(rate=1, burst=0, allowDegradation=false, policy='redis'),
   },
 ]

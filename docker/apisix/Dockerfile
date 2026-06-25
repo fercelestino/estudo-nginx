@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     systemd-sysv \
     dbus \
     procps \
+    tcpdump \
+    redis-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Remove systemd units that don't make sense in a container

@@ -16,7 +16,8 @@ else
 fi
 
 apt-get update
-apt-get install -y apisix=3.8.0-0 net-tools
+package_version=$(apt-cache policy apisix | grep Candidate | awk '{print $2}')
+apt-get install -y apisix=$package_version net-tools
 
 # etcd not needed in standalone mode (config_provider: yaml)
 # ETCD_VERSION='3.5.4'
